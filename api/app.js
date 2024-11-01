@@ -74,23 +74,22 @@ app.use(
 //ضغط البيانات قبل ارسالها من اجل تسريع النقل
 app.use(compression());
 const userRouter = require('./routes/userRoutes');
+const departmentRouter = require('./routes/departmentRouter');
+const doctorRouter = require('./routes/doctorRouter');
+const pataintRouter = require('./routes/pataintRouter');
 
 // 3) ROUTES
 app.use('/docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 app.use('/', userRouter);
+app.use('/api/v1.0.0/departments', departmentRouter);
+app.use('/api/v1.0.0/doctors', doctorRouter);
+app.use('/api/v1.0.0/pataints', pataintRouter);
 app.use('/api/v1.0.0/users', userRouter);
 //في حال طلب مورد غير موجود
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 app.use(errorGlobal);
-
-// process.on('uncaughtException', (err) => {
-//   console.log('UNCAUGHT EXCEPTION! 💥 Shutting down...');
-//   console.log(err.name, err.message);
-//   process.exit(1);
-// });
-//4)
 mongoose
   .connect(process.env.DATABASE_LOCAL)
   .then((result) => {
@@ -104,21 +103,6 @@ Example app listening at http://localhost:${process.env.PORT}/docs`
   .catch((err) => {
     console.log(err);
   });
-
-// process.on('unhandledRejection', (err) => {
-//   console.log('UNHANDLED REJECTION! 💥 Shutting down...');
-//   console.log(err.name, err.message);
-//   server.close(() => {
-//     process.exit(1);
-//   });
-// });
-// process.on('SIGTERM', () => {
-//   console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');
-//   server.close(() => {
-//     console.log('💥 Process terminated!');
-//   });
-// });
-
 // //4) اتصال مع قاعدة البيانات الخارجية في اطلس باستخدام مكتبة مونغوس
 // const DB = process.env.DATABASE.replace(
 //     '<PASSWORD>',

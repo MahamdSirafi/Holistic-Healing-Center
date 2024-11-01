@@ -1,0 +1,9 @@
+const Department = require('../models/departmentModel');
+const AppError = require('../utils/appError');
+const handlerFactory = require('../utils/handlerFactory');
+const catchAsync = require('../utils/catchAsync');
+exports.getdepartment = handlerFactory.getOne(Department);
+exports.createdepartment = handlerFactory.createOne(Department);
+exports.updatedepartment = handlerFactory.updateOne(Department);
+exports.deletedepartment = handlerFactory.deleteOne(Department);
+exports.getAlldepartment = handlerFactory.getAll(Department);
