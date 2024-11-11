@@ -9,6 +9,12 @@ const departmentSchema = new mongoose.Schema(
       required: [true, 'must enter price'],
       type: Number,
     },
+    rate: {
+      required: [true, 'must enter price'],
+      type: Number,
+      max: 99,
+      min:1
+    },
   },
   {
     timestamps: true,

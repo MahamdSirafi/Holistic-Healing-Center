@@ -27,11 +27,22 @@ const doctorSchema = new mongoose.Schema(
       required: [true, 'must enter expertise'],
       type: Number,
     },
-    specialization: {
-      required: [true, 'must enter specialization'],
-      type: String,
-    },
     date: {
+      first: {
+        required: [true, 'must enter first time'],
+        type: Number,
+      },
+      last: {
+        required: [true, 'must enter last time'],
+        type: Number,
+      },
+      day: {
+        required: [true, 'must enter day'],
+        type: String,
+      },
+    },
+    photo: {
+      required: [true, 'must enter last photo'],
       type: String,
     },
     department: {

@@ -3,11 +3,12 @@ const doctorController = require("../controllers/doctorController");
   const express = require("express");
   const router = express.Router();
   router.use(authMiddlewers.protect);
-  router.route("/").get(doctorController.getAlldoctor).post(doctorController.createdoctor);
+router.route("/").get(doctorController.getAlldoctor)
+  .post(authMiddlewers.restrictTo("admin"),doctorController.createdoctor);
   router
     .route("/:id")
     .get(doctorController.getdoctor)
-    .patch(doctorController.updatedoctor)
-    .delete(doctorController.deletedoctor);
+    .patch(authMiddlewers.restrictTo("admin"), doctorController.updatedoctor)
+    .delete(authMiddlewers.restrictTo("admin"), doctorController.deletedoctor);
   module.exports = router;
   
