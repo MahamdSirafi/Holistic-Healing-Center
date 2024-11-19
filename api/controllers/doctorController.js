@@ -19,6 +19,7 @@ exports.createdoctor = catchAsync(async (req, res, next) => {
     photo: req.body.photo,
     date: req.body.date,
     department: req.body.department,
+    duration: req.body.duration,
   })
   const authUser = await User.create({
     email: req.body.email,
