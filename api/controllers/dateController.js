@@ -6,7 +6,6 @@ const handlerFactory = require('../utils/handlerFactory');
 const catchAsync = require('../utils/catchAsync');
 const Doctor = require('../models/doctorModel');
 const { dateClass } = require('../class/dateClass');
-const { patch } = require('../routes/dateRouter');
 exports.getdate = handlerFactory.getOne(Dates);
 exports.createdate = catchAsync(async (req, res, next) => {
   let lastDate = await Dates.find({
@@ -21,7 +20,7 @@ exports.createdate = catchAsync(async (req, res, next) => {
   const walletUsr = await Wallet.findById(req.user._id);
   let priceDep = thisDoctor.department.price;
   let priceReview = thisDoctor.department.rateForReview;
-  if (new Date(req.body.date) <= lastDate.nextDate) {
+  if (lastDate && new Date(req.body.date) <= lastDate.nextDate) {
     priceDep = (priceDep * priceReview) / 100;
     req.body.status = 'review';
   } else {
@@ -40,7 +39,7 @@ exports.createdate = catchAsync(async (req, res, next) => {
 
 exports.updatedate = handlerFactory.updateOne(Dates);
 exports.deletedate = handlerFactory.deleteOne(Dates);
-exports.getAlldate = handlerFactory.getAllpop1(Dates,{path:"doctor",select:"-_id first_name last_name"},{path:"pataint",select:"-_id -adderss -photo -insurance"});
+exports.getAlldate = handlerFactory.getAllpop1(Dates, { path: "doctor", select: "-_id first_name last_name" }, { path: "pataint", select: "-_id -adderss -photo -insurance" });
 exports.available = catchAsync(async (req, res, next) => {
   const doctor = await Doctor.findById(req.params.id);
   const alldate = await Dates.find({
@@ -85,10 +84,10 @@ const dateFree = (all, take, duration) => {
           if (
             (new Date().getDay() === WeekDay[element.day] &&
               element.first + Math.trunc((i * duration) / 60) <
-                new Date().getHours()) ||
+              new Date().getHours()) ||
             (new Date().getDay() === WeekDay[element.day] &&
               element.first + Math.trunc((i * duration) / 60) ==
-                new Date().getHours() &&
+              new Date().getHours() &&
               (i * duration) % 60 < new Date().getMinutes())
           )
             continue;

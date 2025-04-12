@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const User = require('./userModel');
 const doctorSchema = new mongoose.Schema(
   {
     first_name: {
@@ -71,5 +72,10 @@ const doctorSchema = new mongoose.Schema(
     versionKey: false,
   }
 );
+doctorSchema.post('findOneAndDelete', async function (doc) {
+  if (doc) {
+    await User.findByIdAndDelete(doc._id)
+  }
+});
 const Doctor = mongoose.model('Doctor', doctorSchema);
 module.exports = Doctor;
