@@ -1,3 +1,4 @@
+const User = require('../models/userModel');
 const Dates = require('../models/dateModel');
 const Wallet = require('../models/walletModel');
 const { WeekDay } = require('../class/weekDay');
@@ -18,6 +19,7 @@ exports.createdate = catchAsync(async (req, res, next) => {
   });
 
   const walletUsr = await Wallet.findById(req.user._id);
+  console.log(thisDoctor.department);
   let priceDep = thisDoctor.department.price;
   let priceReview = thisDoctor.department.rateForReview;
   if (lastDate && new Date(req.body.date) <= lastDate.nextDate) {
@@ -30,6 +32,19 @@ exports.createdate = catchAsync(async (req, res, next) => {
     return next(
       new AppError(`you don't have balance for this ${req.body.status}`, 400)
     );
+  //add for doctor
+  const walletDoctor = await Wallet.findById(req.body.doctor);
+  walletDoctor.balance +=
+    (thisDoctor.department.rateForDoctor / 100) * priceDep;
+  await walletDoctor.save();
+
+  //add for admin
+  const admin = await User.findOne({ role: 'admin' });
+  const walletAdmin = await Wallet.findById(admin._id);
+  walletAdmin.balance +=
+    priceDep - (thisDoctor.department.rateForDoctor / 100) * priceDep;
+  await walletAdmin.save();
+
   const doc = await Dates.create(req.body);
   res.status(201).json({
     status: 'succsess',
@@ -39,7 +54,11 @@ exports.createdate = catchAsync(async (req, res, next) => {
 
 exports.updatedate = handlerFactory.updateOne(Dates);
 exports.deletedate = handlerFactory.deleteOne(Dates);
-exports.getAlldate = handlerFactory.getAllpop1(Dates, { path: "doctor", select: "-_id first_name last_name" }, { path: "pataint", select: "-_id -adderss -photo -insurance" });
+exports.getAlldate = handlerFactory.getAllpop1(
+  Dates,
+  { path: 'doctor', select: '-_id first_name last_name' },
+  { path: 'pataint', select: '-_id -adderss -photo -insurance' }
+);
 exports.available = catchAsync(async (req, res, next) => {
   const doctor = await Doctor.findById(req.params.id);
   const alldate = await Dates.find({
@@ -84,10 +103,10 @@ const dateFree = (all, take, duration) => {
           if (
             (new Date().getDay() === WeekDay[element.day] &&
               element.first + Math.trunc((i * duration) / 60) <
-              new Date().getHours()) ||
+                new Date().getHours()) ||
             (new Date().getDay() === WeekDay[element.day] &&
               element.first + Math.trunc((i * duration) / 60) ==
-              new Date().getHours() &&
+                new Date().getHours() &&
               (i * duration) % 60 < new Date().getMinutes())
           )
             continue;

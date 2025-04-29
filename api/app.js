@@ -74,6 +74,7 @@ app.use(
 //ضغط البيانات قبل ارسالها من اجل تسريع النقل
 app.use(compression());
 const userRouter = require('./routes/userRoutes');
+const statissticRouter = require('./routes/statissticRouter');
 const dateRouter = require('./routes/dateRouter');
 const walletRouter = require('./routes/walletRouter');
 const departmentRouter = require('./routes/departmentRouter');
@@ -83,6 +84,7 @@ const pataintRouter = require('./routes/pataintRouter');
 // 3) ROUTES
 app.use('/docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 app.use('/', userRouter);
+app.use('/api/v1.0.0/statisstics', statissticRouter);
 app.use('/api/v1.0.0/dates', dateRouter);
 app.use('/api/v1.0.0/wallets', walletRouter);
 app.use('/api/v1.0.0/departments', departmentRouter);
