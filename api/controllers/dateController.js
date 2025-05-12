@@ -54,6 +54,18 @@ exports.createdate = catchAsync(async (req, res, next) => {
 
 exports.updatedate = handlerFactory.updateOne(Dates);
 exports.deletedate = handlerFactory.deleteOne(Dates);
+exports.getDateDoctor = catchAsync(async (req, res, next) => {
+  const doc = await Dates.find({
+    date: { $gte: Date.now() },
+    doctor: req.user._id,
+  });
+  // SEND RESPONSE
+  res.status(200).json({
+    status: 'success',
+    results: doc.length,
+    doc,
+  });
+});
 exports.getAlldate = handlerFactory.getAllpop1(
   Dates,
   { path: 'doctor', select: '-_id first_name last_name' },

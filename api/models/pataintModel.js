@@ -5,6 +5,10 @@ const pataintSchema = new mongoose.Schema(
       required: [true, 'must enter first_name'],
       type: String,
     },
+    information: {
+      required: [true, 'must enter information'],
+      type: String,
+    },
     last_name: {
       required: [true, 'must enter last_name'],
       type: String,

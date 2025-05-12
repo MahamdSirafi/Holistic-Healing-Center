@@ -16,12 +16,7 @@ router
   );
 router
   .route('/mineForDoctor')
-  .get(
-    restrictTo('doctor'),
-    // addQuery('doctor', 'userId'),
-    // addQuery('canceled', false),
-    dateController.getAlldate
-  );
+  .get(restrictTo('doctor'), dateController.getDateDoctor);
 router
   .route('/')
   .get(restrictTo('admin'), dateController.getAlldate)
@@ -38,11 +33,11 @@ router
     addVarBody('canceled', true),
     dateController.updatedate
   );
-  router
+router
   .route('/review/:id')
-  .patch(restrictTo('doctor'),dateController.updatedate);
+  .patch(restrictTo('doctor'), dateController.updatedate);
 router
   .route('/:id')
   .get(dateController.getdate)
-  .delete(restrictTo('admin'), dateController.deletedate)
+  .delete(restrictTo('admin'), dateController.deletedate);
 module.exports = router;
