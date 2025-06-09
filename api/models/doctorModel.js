@@ -41,13 +41,13 @@ const doctorSchema = new mongoose.Schema(
         day: {
           required: [true, 'must enter day'],
           anum: [
-            'sunday',
-            'monday',
-            'tuesday',
-            'wednesday',
-            'thursday',
-            'friday',
-            'saturday',
+            'Sunday',
+            'Monday',
+            'Tuesday',
+            'Wednesday',
+            'Thursday',
+            'Friday',
+            'Saturday',
           ],
           type: String,
         },
@@ -74,7 +74,7 @@ const doctorSchema = new mongoose.Schema(
 );
 doctorSchema.post('findOneAndDelete', async function (doc) {
   if (doc) {
-    await User.findByIdAndDelete(doc._id)
+    await User.findByIdAndDelete(doc._id);
   }
 });
 const Doctor = mongoose.model('Doctor', doctorSchema);
