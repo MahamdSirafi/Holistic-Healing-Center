@@ -3,147 +3,196 @@ const Pataint = require('../models/pataintModel');
 const Company = require('../models/companyModel');
 const Dates = require('../models/dateModel');
 const Wallet = require('../models/walletModel');
+const Doctor = require('../models/doctorModel');
 const { WeekDay } = require('../class/weekDay');
+const { dateClass } = require('../class/dateClass');
 const AppError = require('../utils/appError');
 const handlerFactory = require('../utils/handlerFactory');
 const catchAsync = require('../utils/catchAsync');
-const Doctor = require('../models/doctorModel');
-const { dateClass } = require('../class/dateClass');
+
+// ===================== Get One Date =====================
 exports.getdate = handlerFactory.getOne(Dates);
+
+// ===================== Create New Date =====================
 exports.createdate = catchAsync(async (req, res, next) => {
+  const patientId = req.user._id;
+  const doctorId = req.body.doctor;
+  const requestedDate = new Date(req.body.date);
+
+  // Get the last appointment with this doctor
   let lastDate = await Dates.find({
-    pataint: req.user._id,
-    doctor: req.body.doctor,
+    pataint: patientId,
+    doctor: doctorId,
   }).sort('-date');
   lastDate = lastDate[0];
-  const thisDoctor = await Doctor.findById(req.body.doctor).populate({
-    path: 'department',
-  });
 
-  const walletUsr = await Wallet.findById(req.user._id);
-  console.log(thisDoctor.department);
-  let priceDep = thisDoctor.department.price;
-  let priceReview = thisDoctor.department.rateForReview;
-  if (lastDate && new Date(req.body.date) <= lastDate.nextDate) {
-    priceDep = (priceDep * priceReview) / 100;
-    req.body.status = 'review';
-  } else {
-    req.body.status = 'preview';
+  // Get doctor and department info
+  const doctor = await Doctor.findById(doctorId).populate('department');
+  if (!doctor) return next(new AppError('Doctor not found', 404));
+
+  const department = doctor.department;
+  const walletUser = await Wallet.findById(patientId);
+
+  if (!walletUser) return next(new AppError('User wallet not found', 404));
+
+  let appointmentType = 'preview';
+  let price = department.price;
+  console.log('preview :', price);
+  if (lastDate && requestedDate <= lastDate.nextDate) {
+    price = (price * department.rateForReview) / 100;
+    appointmentType = 'review';
+    console.log('review :', price);
   }
-  if (priceDep > walletUsr.balance)
+
+  // Check for insurance and apply discount if applicable
+  const patient = await Pataint.findById(patientId);
+  if (patient.insurance) {
+    const company = await Company.findOne({ name: patient.insurance });
+    if (!company) return next(new AppError('Insurance company not found', 404));
+    price = (price * company.sall) / 100;
+    console.log('Insurance :', price);
+  }
+
+  // Check if user has enough balance
+  if (price > walletUser.balance) {
     return next(
-      new AppError(`you don't have balance for this ${req.body.status}`, 400)
+      new AppError(`Insufficient balance for ${appointmentType}`, 400)
     );
-  const user = await Pataint.findById(req.user._id);
-  if (user.insurance) {
-    const copmany = await Company.find({ name: user.insurance });
-    if (!copmany) return next(new AppError('company not found', 404));
-     priceDep = (priceDep * copmany.sall) / 100;
   }
 
-  req.body.fees = priceDep;
-  walletUsr.balance -= priceDep;
-  await walletUsr.save();
-  //add for doctor
-  const walletDoctor = await Wallet.findById(req.body.doctor);
-  walletDoctor.balance +=
-    (thisDoctor.department.rateForDoctor / 100) * priceDep;
+  req.body.status = appointmentType;
+  req.body.fees = price;
+
+  // Deduct from patient wallet
+  walletUser.balance -= price;
+  await walletUser.save();
+
+  // Credit doctor wallet
+  const walletDoctor = await Wallet.findById(doctorId);
+
+  if (!walletDoctor) return next(new AppError('Doctor wallet not found', 404));
+
+  const doctorShare = (department.rateForDoctor / 100) * price;
+  walletDoctor.balance += doctorShare;
   await walletDoctor.save();
 
-  //add for admin
+  // Credit admin wallet
   const admin = await User.findOne({ role: 'admin' });
   const walletAdmin = await Wallet.findById(admin._id);
-  walletAdmin.balance +=
-    priceDep - (thisDoctor.department.rateForDoctor / 100) * priceDep;
+
+  if (!walletAdmin) return next(new AppError('Admin wallet not found', 404));
+
+  walletAdmin.balance += price - doctorShare;
   await walletAdmin.save();
 
+  // Create appointment
   const doc = await Dates.create(req.body);
   res.status(201).json({
-    status: 'succsess',
+    status: 'success',
     doc,
   });
 });
 
+// ===================== Update Date =====================
 exports.updatedate = handlerFactory.updateOne(Dates);
+
+// ===================== Delete Date =====================
 exports.deletedate = handlerFactory.deleteOne(Dates);
+
+// ===================== Get Dates for Doctor =====================
 exports.getDateDoctor = catchAsync(async (req, res, next) => {
-  const doc = await Dates.find({
+  const appointments = await Dates.find({
     date: { $gte: Date.now() },
     doctor: req.user._id,
-  }).populate({ path: 'pataint', select: 'first_name last_name' });
-  // SEND RESPONSE
+  }).populate({
+    path: 'pataint',
+    select: 'first_name last_name',
+  });
+
   res.status(200).json({
     status: 'success',
-    results: doc.length,
-    doc,
+    results: appointments.length,
+    doc: appointments,
   });
 });
+
+// ===================== Get All Dates (Admin/Manager) =====================
 exports.getAlldate = handlerFactory.getAllpop1(
   Dates,
-  { path: 'doctor', select: '-_id first_name last_name' },
+  { path: 'doctor', select: 'first_name last_name -_id' },
   { path: 'pataint', select: '-_id -adderss -photo -insurance' }
 );
+
+// ===================== Get Available Dates for a Doctor =====================
 exports.available = catchAsync(async (req, res, next) => {
   const doctor = await Doctor.findById(req.params.id);
-  const alldate = await Dates.find({
+  if (!doctor) return next(new AppError('Doctor not found', 404));
+
+  const upcomingAppointments = await Dates.find({
     canceled: false,
     date: { $gte: Date.now() },
   });
-  const dateMain = doctor.date;
-  if (!doctor) {
-    return new AppError('doctor is not found with ID', 400);
-  }
-  const freeDate = dateFree(dateMain, alldate, doctor.duration);
+
+  const availableSlots = calculateAvailableDates(
+    doctor.date,
+    upcomingAppointments,
+    doctor.duration
+  );
+
   res.status(200).json({
     status: 'success',
-    count: freeDate.length,
-    freeDate,
+    count: availableSlots.length,
+    freeDate: availableSlots,
   });
 });
 
-const dateFree = (all, take, duration) => {
-  let data = [];
-  all.forEach((element) => {
-    let numSession = ((element.last - element.first) * 60) / duration; //عدد الجلسات خلال يوم
-    for (let k = 0; k < 7; k++) {
-      let newDate = new Date();
-      newDate.setDate(k + newDate.getDate());
-      if (newDate.getDay() === WeekDay[element.day])
-        for1: for (let i = 0; i < numSession; i++) {
-          //تحديد تاريخ الجلسة
-          const setDate = new Date(
-            newDate.getFullYear(),
-            newDate.getMonth(),
-            newDate.getDate(),
-            element.first + Math.trunc((i * duration) / 60),
-            (i * duration) % 60,
+// ===================== Helper: Calculate Available Slots =====================
+const calculateAvailableDates = (schedule, takenSlots, duration) => {
+  const available = [];
+
+  schedule.forEach((slot) => {
+    const sessionsPerDay = ((slot.last - slot.first) * 60) / duration;
+
+    for (let offset = 0; offset < 7; offset++) {
+      const candidateDate = new Date();
+      candidateDate.setDate(candidateDate.getDate() + offset);
+
+      if (candidateDate.getDay() === WeekDay[slot.day]) {
+        sessionLoop: for (let i = 0; i < sessionsPerDay; i++) {
+          const hour = slot.first + Math.floor((i * duration) / 60);
+          const minute = (i * duration) % 60;
+
+          const sessionDate = new Date(
+            candidateDate.getFullYear(),
+            candidateDate.getMonth(),
+            candidateDate.getDate(),
+            hour,
+            minute,
             0
           );
-          for (let i = 0; i < take.length; i++)
-            if (setDate.toString() == take[i].date.toString()) {
-              continue for1;
+
+          // Check if session is already taken
+          for (let taken of takenSlots) {
+            if (sessionDate.toString() === new Date(taken.date).toString()) {
+              continue sessionLoop;
             }
-          //شرط ليقارن الساعة الحالية ليعيد المواعيد من بعد الساعة الحالية في حال كان هنالك شاغر في نفس اليوم
+          }
+
+          // Skip past time for today
+          const now = new Date();
           if (
-            (new Date().getDay() === WeekDay[element.day] &&
-              element.first + Math.trunc((i * duration) / 60) <
-                new Date().getHours()) ||
-            (new Date().getDay() === WeekDay[element.day] &&
-              element.first + Math.trunc((i * duration) / 60) ==
-                new Date().getHours() &&
-              (i * duration) % 60 < new Date().getMinutes())
-          )
+            candidateDate.toDateString() === now.toDateString() &&
+            (hour < now.getHours() ||
+              (hour === now.getHours() && minute < now.getMinutes()))
+          ) {
             continue;
-          data.push(
-            new dateClass(
-              setDate,
-              element.day,
-              element.first + Math.trunc((i * duration) / 60),
-              (i * duration) % 60
-            )
-          );
+          }
+
+          available.push(new dateClass(sessionDate, slot.day, hour, minute));
         }
+      }
     }
   });
-  return data;
+
+  return available;
 };

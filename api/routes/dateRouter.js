@@ -12,6 +12,7 @@ router
   .get(
     restrictTo('user'),
     addQuery('pataint', 'userId'),
+    addQuery('date[gte]', Date.now()),
     dateController.getAlldate
   );
 router
