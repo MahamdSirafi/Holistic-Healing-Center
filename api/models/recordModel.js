@@ -5,7 +5,7 @@ const recordSchema = new mongoose.Schema(
       type: String,
     },
     diagnosis: {
-      type: Number,
+      type: String,
     },
     recipe: [
       {

@@ -1,4 +1,6 @@
 const User = require('../models/userModel');
+const Pataint = require('../models/pataintModel');
+const Company = require('../models/companyModel');
 const Dates = require('../models/dateModel');
 const Wallet = require('../models/walletModel');
 const { WeekDay } = require('../class/weekDay');
@@ -32,6 +34,16 @@ exports.createdate = catchAsync(async (req, res, next) => {
     return next(
       new AppError(`you don't have balance for this ${req.body.status}`, 400)
     );
+  const user = await Pataint.findById(req.user._id);
+  if (user.insurance) {
+    const copmany = await Company.find({ name: user.insurance });
+    if (!copmany) return next(new AppError('company not found', 404));
+     priceDep = (priceDep * copmany.sall) / 100;
+  }
+
+  req.body.fees = priceDep;
+  walletUsr.balance -= priceDep;
+  await walletUsr.save();
   //add for doctor
   const walletDoctor = await Wallet.findById(req.body.doctor);
   walletDoctor.balance +=
@@ -58,7 +70,7 @@ exports.getDateDoctor = catchAsync(async (req, res, next) => {
   const doc = await Dates.find({
     date: { $gte: Date.now() },
     doctor: req.user._id,
-  });
+  }).populate({ path: 'pataint', select: 'first_name last_name' });
   // SEND RESPONSE
   res.status(200).json({
     status: 'success',

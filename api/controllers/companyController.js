@@ -1,0 +1,9 @@
+const Company = require('../models/companyModel');
+const AppError = require('../utils/appError');
+const handlerFactory = require('../utils/handlerFactory');
+const catchAsync = require('../utils/catchAsync');
+exports.getCompany = handlerFactory.getOne(Company);
+exports.createCompany = handlerFactory.createOne(Company);
+exports.updateCompany = handlerFactory.updateOne(Company);
+exports.deleteCompany = handlerFactory.deleteOne(Company);
+exports.getAllCompany = handlerFactory.getAll(Company);

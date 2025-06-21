@@ -1,0 +1,9 @@
+const Addetional = require('../models/addetionalModel');
+const AppError = require('../utils/appError');
+const handlerFactory = require('../utils/handlerFactory');
+const catchAsync = require('../utils/catchAsync');
+exports.getAddetional = handlerFactory.getOne(Addetional);
+exports.createAddetional = handlerFactory.createOne(Addetional);
+exports.updateAddetional = handlerFactory.updateOne(Addetional);
+exports.deleteAddetional = handlerFactory.deleteOne(Addetional);
+exports.getAllAddetional = handlerFactory.getAll(Addetional);

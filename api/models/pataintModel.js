@@ -33,12 +33,6 @@ const pataintSchema = new mongoose.Schema(
       type: String,
     },
     insurance: {
-      default: function () {
-        return this.image_insurance != undefined ? true : false;
-      },
-      type: Boolean,
-    },
-    image_insurance: {
       type: String,
     },
     birth_day: {

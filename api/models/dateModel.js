@@ -10,6 +10,10 @@ const dateSchema = new mongoose.Schema(
       enum: ['preview', 'review'],
       default: 'preview',
     },
+    fees: {
+      type: Number,
+      required: [true, 'must enter fees'],
+    },
     date: {
       required: [true, 'must enter date'],
       type: Date,
