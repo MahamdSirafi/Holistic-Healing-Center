@@ -74,6 +74,7 @@ app.use(
 //ضغط البيانات قبل ارسالها من اجل تسريع النقل
 app.use(compression());
 const userRouter = require('./routes/userRoutes');
+const reviewRouter= require('./routes/reviewRouter')
 const companyRouter = require('./routes/companyRouter');
 const recourdRouter = require('./routes/recourdRouter');
 const statissticRouter = require('./routes/statissticRouter');
@@ -86,6 +87,7 @@ const pataintRouter = require('./routes/pataintRouter');
 // 3) ROUTES
 app.use('/docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 app.use('/', userRouter);
+app.use('/api/v1.0.0/reviews', reviewRouter);
 app.use('/api/v1.0.0/recourds', recourdRouter);
 app.use('/api/v1.0.0/companies', companyRouter);
 app.use('/api/v1.0.0/statisstics', statissticRouter);

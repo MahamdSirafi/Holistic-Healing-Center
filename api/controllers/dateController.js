@@ -56,7 +56,10 @@ exports.createdate = catchAsync(async (req, res, next) => {
   // Check if user has enough balance
   if (price > walletUser.balance) {
     return next(
-      new AppError(`Insufficient balance for ${appointmentType}`, 400)
+      new AppError(
+        `Insufficient balance for ${appointmentType} your balance is ${walletUser.balance} The required balance is ${price}`,
+        400
+      )
     );
   }
 
@@ -120,7 +123,7 @@ exports.getDateDoctor = catchAsync(async (req, res, next) => {
 exports.getAlldate = handlerFactory.getAllpop1(
   Dates,
   { path: 'doctor', select: 'first_name last_name -_id' },
-  { path: 'pataint', select: '-_id -adderss -photo -insurance' }
+  { path: 'pataint', select: '-adderss -photo -insurance -_id ' }
 );
 
 // ===================== Get Available Dates for a Doctor =====================
