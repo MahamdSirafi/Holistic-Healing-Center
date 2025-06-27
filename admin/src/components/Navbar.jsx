@@ -19,7 +19,7 @@ const Navbar = () => {
   };
 
   return (
-    <div className=" flex justify-between  items-center px-4 sm:px-10 py-3 border-b  bg-white">
+    <div className=" flex justify-between  items-center px-4 sm:px-10 py-3 border-b  bg-white sticky ">
       <div className="flex item-center gap-2 text-xs">
         <img
           className="w-36 sm:w-40 cursor-pointer"

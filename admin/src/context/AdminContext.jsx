@@ -37,7 +37,7 @@ const AdminContextProvider = (props) => {
       });
 
       setAWallet(response.data.doc)
-      console.log(response.data.doc)
+      console.log(`${response.data.doc}`)
     } catch (error) {
 
     }
