@@ -11,9 +11,9 @@ router
   .route('/mineForUser')
   .get(
     restrictTo('user'),
-    addQuery('pataint', 'userId'),
-    addQuery('date[gte]', Date.now()),
-    dateController.getAlldate
+    // addQuery('pataint', 'userId'),
+    // addQuery('date[gte]', Date.now()),
+    dateController.getDateUser
   );
 router
   .route('/mineForDoctor')

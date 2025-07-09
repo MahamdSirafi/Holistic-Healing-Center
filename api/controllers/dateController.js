@@ -125,7 +125,36 @@ exports.getAlldate = handlerFactory.getAllpop1(
   { path: 'doctor', select: 'first_name last_name -_id' },
   { path: 'pataint', select: '-adderss -photo -insurance -_id ' }
 );
+exports.getDateUser = catchAsync(async (req, res, next) => {
+  const appointments = await Dates.find(
+    {
+      date: { $gte: Date.now() },
+      pataint: req.user._id,
+    },
+    { pataint: 0 }
+  ).populate({
+    path: 'doctor',
+    select: 'first_name last_name department -_id',
+    populate: {
+      path: 'department',
+      select: 'name -_id',
+    },
+  });
 
+  const formattedAppointments = appointments.map((appointment) => ({
+    ...appointment.toObject(),
+    doctor: {
+      ...appointment.doctor.toObject(),
+      department: appointment.doctor.department.name,
+    },
+  }));
+
+  res.status(200).json({
+    status: 'success',
+    results: formattedAppointments.length,
+    doc: formattedAppointments,
+  });
+});
 // ===================== Get Available Dates for a Doctor =====================
 exports.available = catchAsync(async (req, res, next) => {
   const doctor = await Doctor.findById(req.params.id);

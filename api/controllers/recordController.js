@@ -34,6 +34,6 @@ exports.getAllRecord = handlerFactory.getAllpop1(
   },
   {
     path: 'dateId',
-    select: 'status date nextDate -_id',
+    select: '-canceled -pataint -doctor -createdAt -updatedAt -_id',
   }
 );
