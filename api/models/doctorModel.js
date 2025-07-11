@@ -40,7 +40,7 @@ const doctorSchema = new mongoose.Schema(
         },
         day: {
           required: [true, 'must enter day'],
-          anum: [
+          enum: [
             'Sunday',
             'Monday',
             'Tuesday',
