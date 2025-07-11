@@ -7,14 +7,10 @@ const Dates = require('../models/dateModel');
 const router = express.Router();
 router.use(protect);
 router.route('/doctor/:id/available').get(dateController.available);
-router
-  .route('/mineForUser')
-  .get(
-    restrictTo('user'),
-    // addQuery('pataint', 'userId'),
-    // addQuery('date[gte]', Date.now()),
-    dateController.getDateUser
-  );
+router.route('/mineForUser').get(
+  restrictTo('user'),
+  dateController.getDateUser
+);
 router
   .route('/mineForDoctor')
   .get(restrictTo('doctor'), dateController.getDateDoctor);

@@ -203,14 +203,14 @@ const calculateAvailableDates = (schedule, takenSlots, duration) => {
             0
           );
 
-          // Check if session is already taken
+          // التأكد من عدم التعارض مع مواعيد محجوزة
           for (let taken of takenSlots) {
-            if (sessionDate.toString() === new Date(taken.date).toString()) {
+            if (sessionDate.getTime() === new Date(taken.date).getTime()) {
               continue sessionLoop;
             }
           }
 
-          // Skip past time for today
+          // تجاهل الأوقات السابقة في نفس اليوم
           const now = new Date();
           if (
             candidateDate.toDateString() === now.toDateString() &&
@@ -220,7 +220,14 @@ const calculateAvailableDates = (schedule, takenSlots, duration) => {
             continue;
           }
 
-          available.push(new dateClass(sessionDate, slot.day, hour, minute));
+          const finalDate = new Date(sessionDate);
+
+          available.push({
+            date: finalDate.toISOString(), // UTC
+            day: slot.day,
+            hour: finalDate.getUTCHours(), // ✅ UTC
+            minute: finalDate.getUTCMinutes(), // ✅ UTC
+          });
         }
       }
     }
